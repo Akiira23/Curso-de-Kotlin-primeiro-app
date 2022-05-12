@@ -18,9 +18,9 @@ class ListaProdutosActvity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        setContentView(binding.root)
         configuraRecyclerView()
         configuraFab()
-        setContentView(binding.root)
     }
 
     private fun configuraRecyclerView() {

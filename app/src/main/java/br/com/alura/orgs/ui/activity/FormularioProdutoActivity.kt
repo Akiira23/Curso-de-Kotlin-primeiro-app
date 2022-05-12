@@ -9,18 +9,19 @@ import java.math.BigDecimal
 
 class FormularioProdutoActivity : AppCompatActivity() {
 
-    private val biding by lazy {
+    private val binding by lazy {
         ActivityFormularioProdutoBinding.inflate(layoutInflater)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        setContentView(binding.root)
         configuraBotaoSalvar()
-        setContentView(biding.root)
     }
 
     private fun configuraBotaoSalvar() {
-        val botaoSalvar = biding.produtoItemBotaoSalvar
+        val botaoSalvar = binding.produtoItemBotaoSalvar
         val dao = ProdutosDao()
 
         botaoSalvar.setOnClickListener {
@@ -30,13 +31,13 @@ class FormularioProdutoActivity : AppCompatActivity() {
     }
 
     private fun criaProduto(): Produto {
-        val campoNome = biding.activityFormularioNome
+        val campoNome = binding.activityFormularioNome
         val nome = campoNome.text.toString()
 
-        val campoDescricao = biding.activityFormularioDescricao
+        val campoDescricao = binding.activityFormularioDescricao
         val descricao = campoDescricao.text.toString()
 
-        val campoValor = biding.activityFormularioValor
+        val campoValor = binding.activityFormularioValor
         val valorEmTexto = campoValor.text.toString()
         val valor = if (valorEmTexto.isBlank()) {
             BigDecimal.ZERO
