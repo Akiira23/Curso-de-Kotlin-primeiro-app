@@ -6,32 +6,40 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import br.com.alura.orgs.databinding.ProdutoItemBinding
-import br.com.alura.orgs.model.Produto
+import br.com.alura.orgs.extensions.formataParaMoedaBrasileira
 import br.com.alura.orgs.extensions.tentaCarregarImagem
-import java.math.BigDecimal
-import java.text.NumberFormat
-import java.util.*
+import br.com.alura.orgs.model.Produto
 
 class ListaProdutosAdapter(
     private val context: Context,
-    produtos: List<Produto>
+    produtos: List<Produto>,
+    var quandoClicaNoItem: (produto: Produto) -> Unit = {}
 ) : RecyclerView.Adapter<ListaProdutosAdapter.ViewHolder>() {
 
     private val produtos = produtos.toMutableList()
 
-    class ViewHolder(binding: ProdutoItemBinding) :
+    inner class ViewHolder(private val binding: ProdutoItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
+        private lateinit var produto: Produto
 
-        val nome = binding.produtoItemNome
-        val descricao = binding.produtoItemDescricao
-        val valor = binding.produtoItemValor
-        val imagem = binding.produtoItemImagem
+        init {
+            itemView.setOnClickListener {
+                if (::produto.isInitialized) {
+                    quandoClicaNoItem(produto)
+                }
+            }
+        }
+
+        private val nome = binding.produtoItemNome
+        private val descricao = binding.produtoItemDescricao
+        private val valor = binding.produtoItemValor
+        private val imagem = binding.produtoItemImagem
 
         fun vincula(produto: Produto) {
+            this.produto = produto
             nome.text = produto.nome
             descricao.text = produto.descricao
-            val valorEmMoeda: String = formataParaMoedaBrasileira(produto.valor)
-            valor.text = valorEmMoeda
+            valor.text = produto.valor.formataParaMoedaBrasileira()
 
             val visibilidade = if (produto.imagem != null) {
                 View.VISIBLE
@@ -42,21 +50,11 @@ class ListaProdutosAdapter(
             imagem.tentaCarregarImagem(produto.imagem)
         }
 
-        private fun formataParaMoedaBrasileira(valor: BigDecimal): String {
-            val formatador: NumberFormat = NumberFormat.getCurrencyInstance(
-                Locale("pt", "br")
-            )
-            return formatador.format(valor)
-        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ProdutoItemBinding
-            .inflate(
-                LayoutInflater.from(context),
-                parent,
-                false
-            )
+        val inflater = LayoutInflater.from(context)
+        val binding = ProdutoItemBinding.inflate(inflater, parent, false)
         return ViewHolder(binding)
     }
 
