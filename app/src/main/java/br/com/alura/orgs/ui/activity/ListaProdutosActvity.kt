@@ -14,6 +14,8 @@ import br.com.alura.orgs.ui.recyclerview.adapter.ListaProdutosAdapter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import java.lang.Exception
 
 class ListaProdutosActvity : AppCompatActivity() {
@@ -33,15 +35,13 @@ class ListaProdutosActvity : AppCompatActivity() {
         setContentView(binding.root)
         configuraRecyclerView()
         configuraFab()
-    }
 
-    override fun onResume() {
-        super.onResume()
         val handler = coroutineExceptionHandler()
 
         lifecycleScope.launch(handler) {
-            val produtos = dao.buscaTodos()
-            adapter.atualiza(produtos)
+            dao.buscaTodos().collect { produtos ->
+                adapter.atualiza(produtos)
+            }
         }
     }
 
