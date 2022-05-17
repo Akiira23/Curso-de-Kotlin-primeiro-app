@@ -7,6 +7,8 @@ import br.com.alura.orgs.databinding.ActivityFormularioProdutoBinding
 import br.com.alura.orgs.extensions.tentaCarregarImagem
 import br.com.alura.orgs.model.Produto
 import br.com.alura.orgs.ui.dialog.FormularioImagemDialog
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.Main
 import java.math.BigDecimal
 
 class FormularioProdutoActivity : AppCompatActivity() {
@@ -17,6 +19,7 @@ class FormularioProdutoActivity : AppCompatActivity() {
 
     private var url: String? = null
     private var produtoId = 0L
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     private val produtoDao by lazy {
         val db = AppDatabase.instancia(this)
@@ -45,9 +48,13 @@ class FormularioProdutoActivity : AppCompatActivity() {
     }
 
     private fun tentaBuscarProduto() {
-        produtoDao.buscaPorId(produtoId)?.let {
-            title = "Alterar produto"
-            preencheCampos(it)
+        scope.launch() {
+            produtoDao.buscaPorId(produtoId)?.let {
+                withContext(Main) {
+                    title = "Alterar produto"
+                    preencheCampos(it)
+                }
+            }
         }
     }
 
@@ -63,8 +70,10 @@ class FormularioProdutoActivity : AppCompatActivity() {
         val botaoSalvar = binding.activityFormularioProdutoBotaoSalvar
         botaoSalvar.setOnClickListener {
             val produtoNovo = criaProduto()
-            produtoDao.salva(produtoNovo)
-            finish()
+            scope.launch {
+                produtoDao.salva(produtoNovo)
+                finish()
+            }
         }
     }
 

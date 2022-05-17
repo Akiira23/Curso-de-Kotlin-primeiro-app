@@ -12,6 +12,12 @@ import br.com.alura.orgs.extensions.tentaCarregarImagem
 import br.com.alura.orgs.model.Produto
 import br.com.alura.orgs.R
 import br.com.alura.orgs.database.AppDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class DetalhesProdutosActivity : AppCompatActivity() {
 
@@ -23,6 +29,7 @@ class DetalhesProdutosActivity : AppCompatActivity() {
     private val produtoDao by lazy {
         AppDatabase.instancia(this).produtoDao()
     }
+    private val scope = CoroutineScope(IO)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,10 +43,14 @@ class DetalhesProdutosActivity : AppCompatActivity() {
     }
 
     private fun buscaProduto() {
-        produto = produtoDao.buscaPorId(produtoId)
-        produto?.let {
-            preencheCampos(it)
-        } ?: finish()
+        scope.launch {
+            produto = produtoDao.buscaPorId(produtoId)
+            withContext(Main) {
+                produto?.let {
+                    preencheCampos(it)
+                } ?: finish()
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -51,10 +62,12 @@ class DetalhesProdutosActivity : AppCompatActivity() {
 
         when (item.itemId) {
             R.id.menu_detales_produto_remover -> {
-                produto?.let {
-                    produtoDao.remove(it)
+                scope.launch {
+                    produto?.let {
+                        produtoDao.remove(it)
+                    }
+                    finish()
                 }
-                finish()
             }
             R.id.menu_detales_produto_editar -> {
                 Intent(this, FormularioProdutoActivity::class.java).apply {
