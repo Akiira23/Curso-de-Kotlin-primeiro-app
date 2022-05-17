@@ -22,6 +22,7 @@ class ListaProdutosActvity : AppCompatActivity() {
     private val context by lazy {
         this
     }
+    private val job = Job()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +44,8 @@ class ListaProdutosActvity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
         }
-        val scope = CoroutineScope(Main)
+        val scope = MainScope()
+
         scope.launch(handler) {
             val produtos = withContext(IO) {
                 produtoDao.buscaTodos()
@@ -52,6 +54,10 @@ class ListaProdutosActvity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
+    }
     private fun configuraFab() {
         val fab = binding.activityListaFloatingActionButton
         fab.setOnClickListener {
