@@ -5,8 +5,11 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import br.com.alura.orgs.database.AppDatabase
 import br.com.alura.orgs.databinding.ListaProdutosActivityBinding
+import br.com.alura.orgs.model.Produto
 import br.com.alura.orgs.ui.recyclerview.adapter.ListaProdutosAdapter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
@@ -19,10 +22,10 @@ class ListaProdutosActvity : AppCompatActivity() {
     private val binding by lazy {
         ListaProdutosActivityBinding.inflate(layoutInflater)
     }
-    private val context by lazy {
-        this
+    private val dao by lazy {
+        val db = AppDatabase.instancia(this)
+        db.produtoDao()
     }
-    private val job = Job()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,8 +37,15 @@ class ListaProdutosActvity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val db = AppDatabase.instancia(this)
-        val produtoDao = db.produtoDao()
+        val handler = coroutineExceptionHandler()
+
+        lifecycleScope.launch(handler) {
+            val produtos = dao.buscaTodos()
+            adapter.atualiza(produtos)
+        }
+    }
+
+    private fun coroutineExceptionHandler(): CoroutineExceptionHandler {
         val handler = CoroutineExceptionHandler { coroutineContext, throwable ->
             Log.i("ListaProdutosActivity", "onResume: throwable $throwable")
             Toast.makeText(
@@ -44,20 +54,9 @@ class ListaProdutosActvity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
         }
-        val scope = MainScope()
-
-        scope.launch(handler) {
-            val produtos = withContext(IO) {
-                produtoDao.buscaTodos()
-            }
-            adapter.atualiza(produtos)
-        }
+        return handler
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        job.cancel()
-    }
     private fun configuraFab() {
         val fab = binding.activityListaFloatingActionButton
         fab.setOnClickListener {
