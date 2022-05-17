@@ -2,17 +2,25 @@ package br.com.alura.orgs.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import br.com.alura.orgs.database.AppDatabase
 import br.com.alura.orgs.databinding.ListaProdutosActivityBinding
 import br.com.alura.orgs.ui.recyclerview.adapter.ListaProdutosAdapter
 import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import java.lang.Exception
 
 class ListaProdutosActvity : AppCompatActivity() {
 
     private val adapter = ListaProdutosAdapter(context = this)
     private val binding by lazy {
         ListaProdutosActivityBinding.inflate(layoutInflater)
+    }
+    private val context by lazy {
+        this
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,19 +29,23 @@ class ListaProdutosActvity : AppCompatActivity() {
         setContentView(binding.root)
         configuraRecyclerView()
         configuraFab()
-
-        val db = AppDatabase.instancia(this)
-        val produtoDao = db.produtoDao()
-        //adapter.atualiza(produtoDao.buscaTodos())
     }
 
     override fun onResume() {
         super.onResume()
         val db = AppDatabase.instancia(this)
         val produtoDao = db.produtoDao()
-        val scope = MainScope()
-        scope.launch {
-            val produtos = withContext(Dispatchers.IO) {
+        val handler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            Log.i("ListaProdutosActivity", "onResume: throwable $throwable")
+            Toast.makeText(
+                this,
+                "Ocorreu um problema",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        val scope = CoroutineScope(Main)
+        scope.launch(handler) {
+            val produtos = withContext(IO) {
                 produtoDao.buscaTodos()
             }
             adapter.atualiza(produtos)
