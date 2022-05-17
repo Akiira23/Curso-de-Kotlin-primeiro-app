@@ -10,6 +10,7 @@ import br.com.alura.orgs.model.Produto
 import br.com.alura.orgs.ui.dialog.FormularioImagemDialog
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.collect
 import java.math.BigDecimal
 
 class FormularioProdutoActivity : AppCompatActivity() {
@@ -40,18 +41,16 @@ class FormularioProdutoActivity : AppCompatActivity() {
             }
         }
         produtoId = intent.getLongExtra(CHAVE_PRODUTO_ID, 0L)
-    }
-
-    override fun onResume() {
-        super.onResume()
         tentaBuscarProduto()
     }
 
     private fun tentaBuscarProduto() {
         lifecycleScope.launch() {
-            produtoDao.buscaPorId(produtoId)?.let {
-                title = "Alterar produto"
-                preencheCampos(it)
+            produtoDao.buscaPorId(produtoId).collect {
+                it?.let { produtoEncontrado ->
+                    title = "Alterar produto"
+                    preencheCampos(produtoEncontrado)
+                }
             }
         }
     }
