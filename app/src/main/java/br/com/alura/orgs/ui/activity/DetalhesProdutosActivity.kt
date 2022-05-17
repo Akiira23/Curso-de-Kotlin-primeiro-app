@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import br.com.alura.orgs.databinding.ActivityDetalhesProdutosBinding
 import br.com.alura.orgs.extensions.formataParaMoedaBrasileira
 import br.com.alura.orgs.extensions.tentaCarregarImagem
@@ -29,7 +30,6 @@ class DetalhesProdutosActivity : AppCompatActivity() {
     private val produtoDao by lazy {
         AppDatabase.instancia(this).produtoDao()
     }
-    private val scope = CoroutineScope(IO)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,13 +43,11 @@ class DetalhesProdutosActivity : AppCompatActivity() {
     }
 
     private fun buscaProduto() {
-        scope.launch {
+        lifecycleScope.launch {
             produto = produtoDao.buscaPorId(produtoId)
-            withContext(Main) {
-                produto?.let {
-                    preencheCampos(it)
-                } ?: finish()
-            }
+            produto?.let {
+                preencheCampos(it)
+            } ?: finish()
         }
     }
 
@@ -62,7 +60,7 @@ class DetalhesProdutosActivity : AppCompatActivity() {
 
         when (item.itemId) {
             R.id.menu_detales_produto_remover -> {
-                scope.launch {
+                lifecycleScope.launch {
                     produto?.let {
                         produtoDao.remove(it)
                     }
