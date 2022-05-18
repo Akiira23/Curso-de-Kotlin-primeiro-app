@@ -6,12 +6,20 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import br.com.alura.orgs.databinding.ActivityDetalhesProdutosBinding
 import br.com.alura.orgs.extensions.formataParaMoedaBrasileira
 import br.com.alura.orgs.extensions.tentaCarregarImagem
 import br.com.alura.orgs.model.Produto
 import br.com.alura.orgs.R
 import br.com.alura.orgs.database.AppDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class DetalhesProdutosActivity : AppCompatActivity() {
 
@@ -28,18 +36,19 @@ class DetalhesProdutosActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         tentaCarregarProduto()
-    }
-
-    override fun onResume() {
-        super.onResume()
         buscaProduto()
     }
 
     private fun buscaProduto() {
-        produto = produtoDao.buscaPorId(produtoId)
-        produto?.let {
-            preencheCampos(it)
-        } ?: finish()
+        lifecycleScope.launch {
+            produtoDao.buscaPorId(produtoId).collect {produtoEncontrado ->
+                produto = produtoEncontrado
+                produto?.let {
+                    preencheCampos(it)
+                } ?: finish()
+            }
+
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -51,10 +60,12 @@ class DetalhesProdutosActivity : AppCompatActivity() {
 
         when (item.itemId) {
             R.id.menu_detales_produto_remover -> {
-                produto?.let {
-                    produtoDao.remove(it)
+                lifecycleScope.launch {
+                    produto?.let {
+                        produtoDao.remove(it)
+                    }
+                    finish()
                 }
-                finish()
             }
             R.id.menu_detales_produto_editar -> {
                 Intent(this, FormularioProdutoActivity::class.java).apply {

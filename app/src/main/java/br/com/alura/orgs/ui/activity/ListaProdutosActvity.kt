@@ -2,14 +2,30 @@ package br.com.alura.orgs.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+<<<<<<< HEAD
 import android.view.*
 import android.widget.PopupMenu
+=======
+import android.util.Log
+>>>>>>> 10dbbacba3d14f74de98f9649d53f8af86cdf6c1
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import br.com.alura.orgs.database.AppDatabase
 import br.com.alura.orgs.databinding.ListaProdutosActivityBinding
+import br.com.alura.orgs.model.Produto
 import br.com.alura.orgs.ui.recyclerview.adapter.ListaProdutosAdapter
+<<<<<<< HEAD
 import br.com.alura.orgs.R
+=======
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import java.lang.Exception
+>>>>>>> 10dbbacba3d14f74de98f9649d53f8af86cdf6c1
 
 class ListaProdutosActvity : AppCompatActivity() {
 
@@ -17,8 +33,14 @@ class ListaProdutosActvity : AppCompatActivity() {
     private val binding by lazy {
         ListaProdutosActivityBinding.inflate(layoutInflater)
     }
+<<<<<<< HEAD
     private val produtoDao by lazy {
         AppDatabase.instancia(this).produtoDao()
+=======
+    private val dao by lazy {
+        val db = AppDatabase.instancia(this)
+        db.produtoDao()
+>>>>>>> 10dbbacba3d14f74de98f9649d53f8af86cdf6c1
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,16 +51,25 @@ class ListaProdutosActvity : AppCompatActivity() {
         configuraFab()
         
 
-        val db = AppDatabase.instancia(this)
-        val produtoDao = db.produtoDao()
-        adapter.atualiza(produtoDao.buscaTodos())
+        val handler = coroutineExceptionHandler()
+
+        lifecycleScope.launch(handler) {
+            dao.buscaTodos().collect { produtos ->
+                adapter.atualiza(produtos)
+            }
+        }
     }
 
-    override fun onResume() {
-        super.onResume()
-        val db = AppDatabase.instancia(this)
-        val produtoDao = db.produtoDao()
-        adapter.atualiza(produtoDao.buscaTodos())
+    private fun coroutineExceptionHandler(): CoroutineExceptionHandler {
+        val handler = CoroutineExceptionHandler { coroutineContext, throwable ->
+            Log.i("ListaProdutosActivity", "onResume: throwable $throwable")
+            Toast.makeText(
+                this,
+                "Ocorreu um problema",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        return handler
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
