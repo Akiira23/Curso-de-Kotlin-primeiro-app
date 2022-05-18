@@ -3,17 +3,24 @@ package br.com.alura.orgs.ui.recyclerview.adapter
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.OnLongClickListener
 import android.view.ViewGroup
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import br.com.alura.orgs.R
 import br.com.alura.orgs.databinding.ProdutoItemBinding
 import br.com.alura.orgs.extensions.formataParaMoedaBrasileira
 import br.com.alura.orgs.extensions.tentaCarregarImagem
 import br.com.alura.orgs.model.Produto
 
+
 class ListaProdutosAdapter(
     private val context: Context,
     produtos: List<Produto> = emptyList(),
-    var quandoClicaNoItem: (produto: Produto) -> Unit = {}
+    var quandoClicaNoItem: (produto: Produto) -> Unit = {},
+    var quandoSeguradoNoItem: (produto: Produto) -> Unit = {}
 ) : RecyclerView.Adapter<ListaProdutosAdapter.ViewHolder>() {
 
     private val produtos = produtos.toMutableList()
@@ -27,6 +34,10 @@ class ListaProdutosAdapter(
                 if (::produto.isInitialized) {
                     quandoClicaNoItem(produto)
                 }
+            }
+            itemView.setOnLongClickListener {
+                quandoSeguradoNoItem(produto)
+                true
             }
         }
 
@@ -66,6 +77,7 @@ class ListaProdutosAdapter(
     override fun getItemCount(): Int {
         return produtos.size
     }
+
 
     fun atualiza(produtos: List<Produto>) {
         this.produtos.clear()
